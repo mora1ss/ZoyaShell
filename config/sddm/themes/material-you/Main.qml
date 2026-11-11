@@ -619,13 +619,13 @@ Rectangle {
 
         Item {
             width: 1
-            height: 52 * s
+            height: 32 * s
         }
 
         Item {
             id: pw
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 360 * s
+            width: 300 * s
             height: 32 * s
 
             property string text: ""
