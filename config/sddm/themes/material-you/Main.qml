@@ -619,7 +619,7 @@ Rectangle {
 
         Item {
             width: 1
-            height: 78 * s
+            height: 52 * s
         }
 
         Item {
