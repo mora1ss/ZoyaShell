@@ -498,8 +498,8 @@ Rectangle {
         id: mainLayout
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: -15 * s
-        spacing: 16 * s
+        anchors.verticalCenterOffset: -12 * s
+        spacing: 14 * s
         opacity: root.ui1
         scale: 0.96 + (0.04 * root.ui1)
         transform: Translate { y: (1 - root.ui1) * 30 * s }
@@ -619,14 +619,14 @@ Rectangle {
 
         Item {
             width: 1
-            height: 94 * s
+            height: 78 * s
         }
 
         Item {
             id: pw
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 380 * s
-            height: 40 * s
+            width: 360 * s
+            height: 32 * s
 
             property string text: ""
             property bool isRevealed: false
@@ -636,7 +636,7 @@ Rectangle {
             property real scrollOffset: 0
             property real typePulse: 0
             readonly property bool hasFocus: innerInput.activeFocus
-            readonly property real fontSize: 14 * s
+            readonly property real fontSize: 12 * s
             readonly property real dotSize: Math.round(height * 0.44)
             readonly property int charSpacing: Math.round(2 * s)
             readonly property real charSlotStep: (revealProgress > 0.5 ? charMetrics.width : dotSize) + charSpacing
@@ -992,8 +992,8 @@ Rectangle {
                     anchors.rightMargin: 6 * s
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
-                    anchors.topMargin: 4 * s
-                    anchors.bottomMargin: 4 * s
+                    anchors.topMargin: 2 * s
+                    anchors.bottomMargin: 2 * s
                     clip: true
                     onWidthChanged: pw.updateScroll()
 
@@ -1160,12 +1160,12 @@ Rectangle {
 
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8 * s
+            spacing: 6 * s
 
             Rectangle {
                 id: userChip
-                width: userRow.implicitWidth + 36 * s
-                height: 36 * s
+                width: userRow.implicitWidth + 28 * s
+                height: 28 * s
                 radius: root.radius
                 color: userMa.pressed ? root.cFieldBox : (userMa.containsMouse ? root.cField : root.cSurface)
                 scale: userMa.pressed ? 0.96 : 1.0
@@ -1175,18 +1175,18 @@ Rectangle {
                 Row {
                     id: userRow
                     anchors.centerIn: parent
-                    spacing: 8 * s
+                    spacing: 6 * s
                     Ico {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "user"
                         tint: root.cMid
-                        size: 16 * s
+                        size: 14 * s
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.userName()
                         font.family: root.sansFont
-                        font.pixelSize: 14 * s
+                        font.pixelSize: 11 * s
                         font.weight: Font.Medium
                         color: root.cText
                     }
@@ -1208,8 +1208,8 @@ Rectangle {
 
             Rectangle {
                 id: sessionChip
-                width: sessionRow.implicitWidth + 36 * s
-                height: 36 * s
+                width: sessionRow.implicitWidth + 28 * s
+                height: 28 * s
                 radius: root.radius
                 color: sessionMa.pressed ? root.cFieldBox : (sessionMa.containsMouse ? root.cField : root.cSurface)
                 scale: sessionMa.pressed ? 0.96 : 1.0
@@ -1219,18 +1219,18 @@ Rectangle {
                 Row {
                     id: sessionRow
                     anchors.centerIn: parent
-                    spacing: 8 * s
+                    spacing: 6 * s
                     Ico {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "session"
                         tint: root.cMid
-                        size: 16 * s
+                        size: 14 * s
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.sessionName()
                         font.family: root.sansFont
-                        font.pixelSize: 14 * s
+                        font.pixelSize: 11 * s
                         font.weight: Font.Medium
                         color: root.cText
                     }
