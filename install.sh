@@ -12,7 +12,7 @@ HAVE_VERSION="$(tr -d ' \r\n' 2>/dev/null <"$HOME/.config/rice/version" || true)
 # shellcheck source=install/lib/distro.sh
 . "$ROOT/install/lib/distro.sh"
 
-ASSUME_YES=0; DRY_RUN=0; MODE=install; SKIP_PKGS=0; PULLED=0; TAKE_SETTINGS_ARG=0; WM_ARG=""; AUR_ARG=""
+ASSUME_YES=0; DRY_RUN=0; MODE=install; SKIP_PKGS=0; PULLED=0; TAKE_SETTINGS_ARG=0; WM_ARG=""; AUR_ARG=""; SDDM=0
 usage() {
   cat <<U
 ZoyaShell installer V$RICE_VERSION
@@ -27,6 +27,8 @@ Usage: ./install.sh [options]
       --aur          Arch: get yay and every AUR package (without it: only when the shell needs one)
       --no-aur       Arch: never build yay; AUR packages are skipped (the cursor and fonts come from GitHub)
       --no-input-group  do not join the input group (Infinite Desktop: SUPER + ALT + mouse then stays off)
+      --sddm         install and enable the SDDM display manager with the Material You theme
+      --no-sddm      do not install SDDM
       --restore      put back the files from the newest backup
   -h, --help         this help
 U
@@ -44,10 +46,20 @@ for a in "$@"; do
     --aur) AUR_ARG=yes ;;
     --no-aur) AUR_ARG=no ;;
     --no-input-group) NO_INPUT=1 ;;
+    --sddm) SDDM=1 ;;
+    --no-sddm) SDDM=0 ;;
     -h|--help) usage; exit 0 ;;
     *) fail "Unknown option: $a"; usage; exit 2 ;;
   esac
 done
+
+# SDDM packages: added to the distro package lists when --sddm is given
+if [ "$SDDM" = 1 ]; then
+  case "$FAMILY" in
+    arch)   ARCH_PKGS+=("${PKG_SDDM[@]}") ;;
+    fedora) FEDORA_PKGS+=("${FPKG_SDDM[@]}") ;;
+  esac
+fi
 
 if [ "$(id -u)" = 0 ] && [ -z "${ZOYA_ALLOW_ROOT:-}" ]; then
   fail "Run this as your normal user, not root. It installs into your home folder and asks for sudo when needed."
@@ -398,6 +410,7 @@ step_packages() {
       note "or with flakes:  inputs.zoya-shell.url = \"github:mora1ss/ZoyaShell\";"
       note "then run:  sudo nixos-rebuild switch"
       note "Infinite Desktop (SUPER + ALT + mouse) also needs, next to the module import:  programs.zoya-shell.user = \"$USER\";"
+      note "SDDM (programs.zoya-shell.sddm.enable = true) and the Material You login theme are available via the module."
       ;;
     *)
       warn "$DISTRO_NAME is not supported for automatic packages."
@@ -707,6 +720,88 @@ remember_repo() { mkdir -p "$HOME/.config/rice"; echo "$ROOT" >"$HOME/.config/ri
 remember_version() { mkdir -p "$HOME/.config/rice"; echo "$RICE_VERSION" >"$HOME/.config/rice/version"; }
 first_backup() { mkdir -p "$HOME/.config/rice" "$HOME/.cache/rice"; [ -f "$HOME/.config/rice/.first-backup" ] || echo "$BK" >"$HOME/.config/rice/.first-backup"; }
 
+# setup_sddm: install the SDDM theme, write its config and enable the service
+setup_sddm() {
+  [ "$DRY_RUN" = 1 ] && { info "would set up SDDM"; return 0; }
+  sudo_keepalive || return 0
+
+  # pick the display backend: Wayland (weston/kwin_wayland) or X11
+  local server="x11" compositor=""
+  if command -v weston >/dev/null 2>&1 || command -v kwin_wayland >/dev/null 2>&1; then
+    server="wayland"
+    if command -v weston >/dev/null 2>&1; then compositor="weston --shell=kiosk"; else compositor="kwin_wayland --no-global-shortcuts --no-lockscreen --locale1"; fi
+  elif ! command -v Xorg >/dev/null 2>&1 && ! command -v X >/dev/null 2>&1; then
+    warn "No Xorg or Wayland compositor found for SDDM; skipping SDDM setup."
+    return 0
+  fi
+
+  local theme_src="$ROOT/config/sddm/themes/material-you"
+  local theme_dest="/usr/share/sddm/themes/material-you"
+
+  # deploy the theme
+  if [ -d "$theme_src" ]; then
+    sudo mkdir -p "$theme_dest"
+    sudo cp -r "$theme_src/." "$theme_dest/"
+    sudo chmod -R 755 "$theme_dest"
+    # theme fonts
+    if [ -d "$theme_src/font" ]; then
+      sudo mkdir -p /usr/share/fonts/TTF
+      sudo cp -r "$theme_src/font"/*.ttf /usr/share/fonts/TTF/ 2>/dev/null || true
+      command -v fc-cache >/dev/null 2>&1 && fc-cache -f /usr/share/fonts >/dev/null 2>&1 || true
+    fi
+  else
+    warn "SDDM theme not found at $theme_src; skipping theme deploy."
+    return 0
+  fi
+
+  # write sddm config
+  sudo mkdir -p /etc/sddm.conf.d
+  if [ "$server" = "wayland" ]; then
+    cat <<EOF | sudo tee /etc/sddm.conf.d/10-zoya-shell.conf > /dev/null
+[Theme]
+Current=material-you
+ThemeDir=/usr/share/sddm/themes
+
+[General]
+DisplayServer=wayland
+GreeterEnvironment=QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+InputMethod=
+
+[Wayland]
+CompositorCommand=$compositor
+EOF
+  else
+    cat <<EOF | sudo tee /etc/sddm.conf.d/10-zoya-shell.conf > /dev/null
+[Theme]
+Current=material-you
+ThemeDir=/usr/share/sddm/themes
+
+[General]
+DisplayServer=x11
+InputMethod=
+EOF
+  fi
+
+  # cursor theme fix: prefer Adwaita if present
+  local cursor_theme=""
+  if [ -d /usr/share/icons/Adwaita/cursors ]; then cursor_theme="Adwaita"; else
+    cursor_theme="$(find /usr/share/icons -mindepth 2 -maxdepth 2 -type d -name cursors 2>/dev/null | head -n1 | xargs -r dirname | xargs -r basename)"
+  fi
+  if [ -n "$cursor_theme" ]; then
+    sudo sed -i -e "/^ThemeDir=/a CursorTheme=$cursor_theme" -e "/^ThemeDir=/a CursorSize=24" /etc/sddm.conf.d/10-zoya-shell.conf
+  fi
+
+  # enable the sddm service
+  local init_sys="systemd"
+  command -v systemctl >/dev/null 2>&1 || init_sys="generic"
+  case "$init_sys" in
+    systemd) sudo systemctl enable --now sddm.service 2>/dev/null || sudo systemctl enable sddm.service 2>/dev/null || true ;;
+    *)       sudo systemctl enable sddm.service 2>/dev/null || true ;;
+  esac
+
+  ok "SDDM Material You theme installed and sddm service enabled"
+}
+
 step_finish() {
   local T=25
   task "Remembering your backup folder" first_backup
@@ -752,6 +847,8 @@ step_finish() {
       task "niri config (written again for your niri when it first starts)" t "$BIN/rice-niri" apply
     fi
   fi
+  # SDDM display manager with the Material You theme
+  if [ "$SDDM" = 1 ]; then task "SDDM: Material You login theme and service" setup_sddm; fi
   # Settings > Security > Shell files: the files are watched from here on (after every install and update)
   if [ "$IN_HYPR" = 1 ] && [ "$DRY_RUN" != 1 ]; then
     task "Reloading Hyprland" t hyprctl reload

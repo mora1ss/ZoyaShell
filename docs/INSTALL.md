@@ -32,6 +32,11 @@ zoya-shell.nixosModules.default
 ```
 Run `sudo nixos-rebuild switch`, then `./install.sh` and choose Tools, Apps and Dotfiles.
 
+On NixOS you can also enable SDDM via the module:
+```nix
+programs.zoya-shell.sddm = true;
+```
+
 ## Backups and undo
 Every file the installer replaces is copied to `~/.config/zoya-shell-backup-<time>/`. Undo with `./install.sh --restore`.
 

@@ -4,7 +4,8 @@
 #   imports = [ /path/to/zoya-shell/nix/module.nix ];      (or the flake: inputs.zoya-shell.nixosModules.default)
 #   programs.zoya-shell.user = "zoya";                      your user: joins the "input" group (SUPER + ALT + mouse)
 #
-# Options (all optional): enable (true), user (null), niri (true), extras (true: live wallpapers, video previews).
+# Options (all optional): enable (true), user (null), niri (true), extras (true: live wallpapers, video previews),
+# sddm (true: enable the SDDM display manager with the Material You theme).
 # A package your nixpkgs does not have is skipped instead of stopping the rebuild (awww falls back to swww).
 { config, lib, pkgs, options, ... }:
 let
@@ -12,6 +13,7 @@ let
   # the packages that exist in this nixpkgs (older or newer ones rename or drop some)
   have = names: lib.filter (p: p != null) (map (n: lib.attrByPath (lib.splitString "." n) null pkgs) names);
   wallpaperDaemon = if pkgs ? awww then [ pkgs.awww ] else have [ "swww" ];
+  sddmPackages = have [ "sddm" "qt6-qtdeclarative" "qt6-qtsvg" "weston" ];
 in
 {
   options.programs.zoya-shell = {
@@ -23,7 +25,7 @@ in
     user = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      example = "shadow";
+      example = "zoya";
       description = "Your user name. It joins the input group, so Infinite Desktop (SUPER + ALT + mouse) can read the mouse.";
     };
     niri = lib.mkOption {
@@ -35,6 +37,11 @@ in
       type = lib.types.bool;
       default = true;
       description = "Live wallpapers (mpvpaper) and video previews (ffmpeg).";
+    };
+    sddm = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable the SDDM display manager with the Material You login theme.";
     };
   };
 
@@ -85,5 +92,16 @@ in
     (lib.mkIf cfg.niri {
       environment.systemPackages = have [ "xwayland-satellite" "gammastep" ];
     })
+
+    # SDDM: the display manager with the Material You login theme
+    (lib.mkIf cfg.sddm (lib.mkMerge [
+      { environment.systemPackages = sddmPackages; }
+      (lib.mkIf (config ? services && config.services ? xdisplayManager) {
+        services.xdisplayManager.enable = true;
+        services.xdisplayManager.displayManager = "sddm";
+        services.xdisplayManager.sddm.enable = true;
+        services.xdisplayManager.sddm.theme = "material-you";
+      })
+    ]))
   ]);
 }

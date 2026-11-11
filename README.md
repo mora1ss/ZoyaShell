@@ -109,6 +109,7 @@ The installer asks which window manager you want (Hyprland, niri or both), insta
 | `--aur` / `--no-aur` | Arch: always get yay and every AUR package / never build yay |
 | `--no-packages` | skip the package step |
 | `--dry-run` | show what would happen, change nothing |
+| `--sddm` / `--no-sddm` | install and enable the SDDM display manager with the Material You login theme / skip it |
 | `--restore` | put back the files from the last backup |
 
 **Updating:** Settings > **Update Center** > Update now (the steps show live, no terminal), the update notification, or `rice-update` in a terminal.
@@ -151,7 +152,7 @@ The installer asks which window manager you want (Hyprland, niri or both), insta
 | **Performance & gaming** | one switch turns off all blur and transparency (Hyprland, kitty, bar, launcher, notifications, dashboard, dock, widgets); Gaming mode with options to keep blur, animations, shadows or gaps, Do Not Disturb (Settings > Services) |
 | **Your settings everywhere** | `./sync.sh` saves your Settings choices to `settings/`, `./install.sh` puts them on your other computers (files you changed there are kept) |
 | **Languages** | English and Polish (Settings and the desktop) |
-| **Installer** | interactive (Install, Update, Choose, Restore), backs up everything, supports Arch, CachyOS, Fedora and NixOS, warns when Hyprland is too old; a wallpaper is put on right after installing |
+| **Installer** | interactive (Install, Update, Choose, Restore), backs up everything, supports Arch, CachyOS, Fedora and NixOS, warns when Hyprland is too old; a wallpaper is put on right after installing; optional SDDM login manager with the Material You theme (`./install.sh --sddm`) |
 
 ## Keybinds
 `SUPER` is the main modifier. On niri the same keys work (the shell's own ones are identical), with niri's column keys in place of the Hyprland layout keys; `SUPER + Shift + /` shows them all there.

@@ -34,6 +34,8 @@ PKG_FONTS=(ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols noto-fonts noto-fonts-
 # adwaita-cursors: a cursor from the repositories, so there is always one (Bibata is in the AUR; without an
 # AUR helper it is downloaded from GitHub)
 PKG_LOOK=(papirus-icon-theme gnome-themes-extra adw-gtk-theme adwaita-cursors bibata-cursor-theme-bin)
+# SDDM display manager and its Qt6/QML dependencies
+PKG_SDDM=(sddm qt6-declarative qt6-svg)
 ARCH_PKGS=("${PKG_DESKTOP[@]}" "${PKG_SHELL[@]}" "${PKG_TOOLS[@]}" "${PKG_FONTS[@]}" "${PKG_LOOK[@]}")
 # AUR packages the shell cannot work without (on Arch versions that do not have them in the repositories):
 # yay is built for these by itself (mpvpaper: live wallpapers). The others (the Bibata cursor, peaclock ...) are skipped without an AUR helper:
@@ -67,4 +69,6 @@ FPKG_TOOLS=(wf-recorder grim slurp wl-clipboard libnotify xdg-user-dirs jq curl 
             btop cmatrix pavucontrol gnome-calendar upower power-profiles-daemon tar xz unzip)
 FPKG_FONTS=(rsms-inter-fonts google-noto-sans-fonts google-noto-emoji-fonts)
 FPKG_LOOK=(papirus-icon-theme adw-gtk3-theme adwaita-cursor-theme)
+# SDDM display manager and its Qt6/QML dependencies
+FPKG_SDDM=(sddm qt6-qtdeclarative qt6-qtsvg)
 FEDORA_PKGS=("${FPKG_DESKTOP[@]}" "${FPKG_SHELL[@]}" "${FPKG_TOOLS[@]}" "${FPKG_FONTS[@]}" "${FPKG_LOOK[@]}")
