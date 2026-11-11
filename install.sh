@@ -12,7 +12,7 @@ HAVE_VERSION="$(tr -d ' \r\n' 2>/dev/null <"$HOME/.config/rice/version" || true)
 # shellcheck source=install/lib/distro.sh
 . "$ROOT/install/lib/distro.sh"
 
-ASSUME_YES=0; DRY_RUN=0; MODE=install; SKIP_PKGS=0; PULLED=0; TAKE_SETTINGS_ARG=0; WM_ARG=""; AUR_ARG=""; SDDM=0
+ASSUME_YES=0; DRY_RUN=0; MODE=install; SKIP_PKGS=0; PULLED=0; TAKE_SETTINGS_ARG=0; WM_ARG=""; AUR_ARG=""; SDDM=1
 usage() {
   cat <<U
 ZoyaShell installer V$RICE_VERSION
@@ -27,8 +27,7 @@ Usage: ./install.sh [options]
       --aur          Arch: get yay and every AUR package (without it: only when the shell needs one)
       --no-aur       Arch: never build yay; AUR packages are skipped (the cursor and fonts come from GitHub)
       --no-input-group  do not join the input group (Infinite Desktop: SUPER + ALT + mouse then stays off)
-      --sddm         install and enable the SDDM display manager with the Material You theme
-      --no-sddm      do not install SDDM
+      --no-sddm      do not install or enable the SDDM display manager
       --restore      put back the files from the newest backup
   -h, --help         this help
 U
@@ -46,7 +45,6 @@ for a in "$@"; do
     --aur) AUR_ARG=yes ;;
     --no-aur) AUR_ARG=no ;;
     --no-input-group) NO_INPUT=1 ;;
-    --sddm) SDDM=1 ;;
     --no-sddm) SDDM=0 ;;
     -h|--help) usage; exit 0 ;;
     *) fail "Unknown option: $a"; usage; exit 2 ;;
@@ -791,11 +789,11 @@ EOF
     sudo sed -i -e "/^ThemeDir=/a CursorTheme=$cursor_theme" -e "/^ThemeDir=/a CursorSize=24" /etc/sddm.conf.d/10-zoya-shell.conf
   fi
 
-  # enable the sddm service
+  # enable the sddm service so it starts on boot (the installer reboots at the end anyway)
   local init_sys="systemd"
   command -v systemctl >/dev/null 2>&1 || init_sys="generic"
   case "$init_sys" in
-    systemd) sudo systemctl enable --now sddm.service 2>/dev/null || sudo systemctl enable sddm.service 2>/dev/null || true ;;
+    systemd) sudo systemctl enable sddm.service 2>/dev/null || sudo systemctl enable sddm 2>/dev/null || true ;;
     *)       sudo systemctl enable sddm.service 2>/dev/null || true ;;
   esac
 

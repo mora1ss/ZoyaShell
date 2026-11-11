@@ -109,7 +109,7 @@ The installer asks which window manager you want (Hyprland, niri or both), insta
 | `--aur` / `--no-aur` | Arch: always get yay and every AUR package / never build yay |
 | `--no-packages` | skip the package step |
 | `--dry-run` | show what would happen, change nothing |
-| `--sddm` / `--no-sddm` | install and enable the SDDM display manager with the Material You login theme / skip it |
+| `--no-sddm` | skip installing and enabling the SDDM display manager (SDDM is enabled by default) |
 | `--restore` | put back the files from the last backup |
 
 **Updating:** Settings > **Update Center** > Update now (the steps show live, no terminal), the update notification, or `rice-update` in a terminal.
